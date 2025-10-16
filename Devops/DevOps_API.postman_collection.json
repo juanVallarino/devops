@@ -1,0 +1,385 @@
+{
+  "info": {
+    "_postman_id": "devops-api-collection",
+    "name": "DevOps Blacklist API",
+    "description": "# DevOps Blacklist API\n\nAPI REST para gestión de lista negra de emails desarrollada con Flask.\n\n## Características\n- Autenticación con Bearer Token\n- Validación de emails\n- Persistencia en base de datos PostgreSQL\n- Endpoints RESTful\n\n## Autenticación\nTodos los endpoints requieren autenticación mediante Bearer Token:\n```\nAuthorization: Bearer dev-token-123\n```\n\n## Base URL\n```\nhttp://localhost:8000\n```\n\n## Endpoints Disponibles\n- `GET /ping` - Health check\n- `POST /blacklists` - Agregar email a lista negra\n- `GET /blacklists/{email}` - Consultar email en lista negra\n\n## Tecnologías\n- Flask 2.3.3\n- Flask-SQLAlchemy 3.0.5\n- Flask-RESTful 0.3.10\n- Flask-Marshmallow 0.15.0\n- Flask-JWT-Extended 4.5.3\n- PostgreSQL\n\n## Autor\nUniversidad de los Andes - DevOps Team",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "devops-team"
+  },
+  "item": [
+    {
+      "name": "Health Check",
+      "description": "Endpoints para verificar el estado de la API",
+      "item": [
+        {
+          "name": "Ping Pong",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/ping",
+              "host": ["{{base_url}}"],
+              "path": ["ping"]
+            },
+            "description": "## Ping Pong Endpoint\n\nEndpoint básico para verificar que la API está funcionando correctamente.\n\n### Descripción\nEste endpoint no requiere autenticación y devuelve un mensaje simple para confirmar que el servicio está activo.\n\n### Parámetros\n- **Ninguno**\n\n### Respuesta\n- **Código**: 200 OK\n- **Formato**: application/json\n- **Contenido**: Mensaje de confirmación\n\n### Ejemplo de Uso\n```bash\ncurl -X GET http://localhost:8000/ping\n```\n\n### Casos de Uso\n- Health checks de monitoreo\n- Verificación de conectividad\n- Tests básicos de funcionamiento"
+          },
+          "response": [
+            {
+              "name": "Success Response",
+              "originalRequest": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/ping",
+                  "host": ["{{base_url}}"],
+                  "path": ["ping"]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n    \"message\": \"pong\"\n}"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Blacklist Management",
+      "description": "Endpoints para gestionar la lista negra de emails de la organización",
+      "item": [
+        {
+          "name": "Add Email to Blacklist",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// Generar email único para evitar conflictos",
+                  "const timestamp = Date.now();",
+                  "const randomNum = Math.floor(Math.random() * 1000);",
+                  "const uniqueEmail = `test${timestamp}${randomNum}@example.com`;",
+                  "",
+                  "// Guardar el email generado en una variable de entorno",
+                  "pm.environment.set('unique_email', uniqueEmail);",
+                  "",
+                  "console.log('Email generado:', uniqueEmail);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer dev-token-123",
+                "type": "text",
+                "description": "Token de autorización Bearer requerido"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text",
+                "description": "Tipo de contenido JSON"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{unique_email}}\",\n  \"app_uuid\": \"123e4567-e89b-12d3-a456-426614174000\",\n  \"blocked_reason\": \"Spam detected\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/blacklists",
+              "host": ["{{base_url}}"],
+              "path": ["blacklists"]
+            },
+            "description": "## Agregar Email a Lista Negra\n\nPermite agregar un email a la lista negra global de la organización.\n\n### Descripción\nEste endpoint permite registrar un email en la lista negra con la razón específica por la cual fue bloqueado.\n\n### Autenticación\n- **Tipo**: Bearer Token\n- **Header**: `Authorization: Bearer dev-token-123`\n\n### Parámetros del Body (JSON)\n| Campo | Tipo | Requerido | Descripción | Ejemplo |\n|-------|------|-----------|-------------|----------|\n| `email` | String | ✅ | Dirección de email válida | `test@example.com` |\n| `app_uuid` | String | ✅ | Identificador único de la aplicación | `123e4567-e89b-12d3-a456-426614174000` |\n| `blocked_reason` | String | ✅ | Razón del bloqueo | `Spam detected` |\n\n### Validaciones\n- Email debe tener formato válido\n- Email no puede estar duplicado en la lista negra\n- Todos los campos son obligatorios\n\n### Códigos de Respuesta\n- **201 Created**: Email agregado exitosamente\n- **400 Bad Request**: Datos inválidos o faltantes\n- **401 Unauthorized**: Token de autorización faltante o inválido\n- **409 Conflict**: Email ya existe en la lista negra\n- **500 Internal Server Error**: Error interno del servidor\n\n### Ejemplo de Uso\n```bash\ncurl -X POST http://localhost:8000/blacklists \\\n  -H \"Authorization: Bearer dev-token-123\" \\\n  -H \"Content-Type: application/json\" \\\n  -d '{\n    \"email\": \"spam{{timestamp}}@example.com\",\n    \"app_uuid\": \"123e4567-e89b-12d3-a456-426614174000\",\n    \"blocked_reason\": \"Spam detected\"\n  }'\n```\n\n### Casos de Uso\n- Bloquear emails de spam\n- Restringir cuentas maliciosas\n- Gestionar lista de emails no deseados"
+          },
+          "response": [
+            {
+              "name": "Success Response",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer dev-token-123",
+                    "type": "text"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json",
+                    "type": "text"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"email\": \"test@example.com\",\n  \"app_uuid\": \"123e4567-e89b-12d3-a456-426614174000\",\n  \"blocked_reason\": \"Spam detected\"\n}"
+                },
+                "url": {
+                  "raw": "{{base_url}}/blacklists",
+                  "host": ["{{base_url}}"],
+                  "path": ["blacklists"]
+                }
+              },
+              "status": "Created",
+              "code": 201,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n    \"message\": \"Email agregado exitosamente a la lista negra\"\n}"
+            },
+            {
+              "name": "Duplicate Email Error",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer dev-token-123",
+                    "type": "text"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json",
+                    "type": "text"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"email\": \"test@example.com\",\n  \"app_uuid\": \"123e4567-e89b-12d3-a456-426614174000\",\n  \"blocked_reason\": \"Spam detected\"\n}"
+                },
+                "url": {
+                  "raw": "{{base_url}}/blacklists",
+                  "host": ["{{base_url}}"],
+                  "path": ["blacklists"]
+                }
+              },
+              "status": "Conflict",
+              "code": 409,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n    \"message\": \"El email ya está en la lista negra\"\n}"
+            },
+            {
+              "name": "Unauthorized Error",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json",
+                    "type": "text"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"email\": \"test@example.com\",\n  \"app_uuid\": \"123e4567-e89b-12d3-a456-426614174000\",\n  \"blocked_reason\": \"Spam detected\"\n}"
+                },
+                "url": {
+                  "raw": "{{base_url}}/blacklists",
+                  "host": ["{{base_url}}"],
+                  "path": ["blacklists"]
+                }
+              },
+              "status": "Unauthorized",
+              "code": 401,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n    \"error\": \"Token de autorización requerido\"\n}"
+            }
+          ]
+        },
+        {
+          "name": "Check Email in Blacklist",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer dev-token-123",
+                "type": "text",
+                "description": "Token de autorización Bearer requerido"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/blacklists/{{unique_email}}",
+              "host": ["{{base_url}}"],
+              "path": ["blacklists", "{{unique_email}}"],
+              "variable": [
+                {
+                  "key": "unique_email",
+                  "value": "{{unique_email}}",
+                  "description": "Dirección de email a consultar en la lista negra"
+                }
+              ]
+            },
+            "description": "## Consultar Email en Lista Negra\n\nPermite verificar si un email está en la lista negra global de la organización y obtener el motivo del bloqueo.\n\n### Descripción\nEste endpoint consulta la base de datos para determinar si un email específico está bloqueado y retorna la información asociada.\n\n### Autenticación\n- **Tipo**: Bearer Token\n- **Header**: `Authorization: Bearer dev-token-123`\n\n### Parámetros de URL\n| Campo | Tipo | Requerido | Descripción | Ejemplo |\n|-------|------|-----------|-------------|----------|\n| `email` | String | ✅ | Dirección de email a consultar | `test@example.com` |\n\n### Respuesta\nLa respuesta siempre será exitosa (200 OK) e incluirá:\n- `is_blocked`: Boolean indicando si está bloqueado\n- `email`: Email consultado\n- `blocked_reason`: Razón del bloqueo (solo si está bloqueado)\n- `app_uuid`: UUID de la aplicación (solo si está bloqueado)\n- `message`: Mensaje informativo (solo si NO está bloqueado)\n\n### Códigos de Respuesta\n- **200 OK**: Consulta exitosa (email bloqueado o no bloqueado)\n- **401 Unauthorized**: Token de autorización faltante o inválido\n\n### Ejemplo de Uso\n```bash\ncurl -X GET http://localhost:8000/blacklists/spam@example.com \\\n  -H \"Authorization: Bearer dev-token-123\"\n```\n\n### Casos de Uso\n- Verificar emails antes de procesarlos\n- Consultas de seguridad\n- Validación de usuarios\n- Integración con sistemas de autenticación"
+          },
+          "response": [
+            {
+              "name": "Email Found in Blacklist",
+              "originalRequest": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer dev-token-123",
+                    "type": "text"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/blacklists/test@example.com",
+                  "host": ["{{base_url}}"],
+                  "path": ["blacklists", "test@example.com"]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n    \"is_blocked\": true,\n    \"email\": \"test@example.com\",\n    \"blocked_reason\": \"Spam detected\",\n    \"app_uuid\": \"123e4567-e89b-12d3-a456-426614174000\"\n}"
+            },
+            {
+              "name": "Email Not Found in Blacklist",
+              "originalRequest": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer dev-token-123",
+                    "type": "text"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/blacklists/clean@example.com",
+                  "host": ["{{base_url}}"],
+                  "path": ["blacklists", "clean@example.com"]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n    \"is_blocked\": false,\n    \"email\": \"clean@example.com\",\n    \"message\": \"Email no encontrado en la lista negra\"\n}"
+            },
+            {
+              "name": "Unauthorized Error",
+              "originalRequest": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/blacklists/test@example.com",
+                  "host": ["{{base_url}}"],
+                  "path": ["blacklists", "test@example.com"]
+                }
+              },
+              "status": "Unauthorized",
+              "code": 401,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n    \"error\": \"Token de autorización requerido\"\n}"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "// Script global que se ejecuta antes de cada request",
+          "console.log('Ejecutando request a:', pm.request.url);",
+          "",
+          "// Validar que la base_url esté configurada",
+          "if (!pm.environment.get('base_url')) {",
+          "    pm.environment.set('base_url', 'http://localhost:8000');",
+          "}"
+        ]
+      }
+    },
+    {
+      "listen": "test",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "// Tests globales que se ejecutan después de cada response",
+          "pm.test('Response time is less than 5000ms', function () {",
+          "    pm.expect(pm.response.responseTime).to.be.below(5000);",
+          "});",
+          "",
+          "pm.test('Response has Content-Type header', function () {",
+          "    pm.expect(pm.response.headers.get('Content-Type')).to.exist;",
+          "});",
+          "",
+          "// Log de la respuesta para debugging",
+          "console.log('Response Status:', pm.response.status);",
+          "console.log('Response Time:', pm.response.responseTime + 'ms');"
+        ]
+      }
+    }
+  ],
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:8000",
+      "type": "string"
+    },
+    {
+      "key": "email",
+      "value": "test@example.com",
+      "type": "string"
+    }
+  ]
+}
