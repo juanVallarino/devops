@@ -9,13 +9,18 @@ services:
       POSTGRES_PASSWORD: password
     volumes:
       - postgres_data:/var/lib/postgresql/data
-
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U user -d devops_db"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
   web:
     build: .
     ports:
       - "8080:5000"
     depends_on:
-      - db
+      db:
+        condition: service_healthy
     environment:
       - DATABASE_URL=postgresql://user:password@db:5432/devops_db
       - APP_ENV=production
