@@ -1,28 +1,12 @@
 version: '3.8'
 
 services:
-  db:
-    image: postgres:13
-    environment:
-      POSTGRES_DB: devops_db
-      POSTGRES_USER: user
-      POSTGRES_PASSWORD: password
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U user -d devops_db"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
   web:
     build: .
     ports:
       - "8080:5000"
-    depends_on:
-      db:
-        condition: service_healthy
     environment:
-      - DATABASE_URL=postgresql://user:password@db:5432/devops_db
+      - DATABASE_URL=postgresql://postgres:35476565@devops.cg7y08iiucfy.us-east-1.rds.amazonaws.com:5432/postgres
       - APP_ENV=production
       - DEBUG=False
 volumes:
