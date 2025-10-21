@@ -1,9 +1,9 @@
 from flask_restful import Resource, request
 from app.models.blacklist import Blacklist
-from app.schemas.blacklist import BlacklistSchema, BlacklistResponseSchema
+from app.schemas.blacklist import BlacklistSchema
 from app.utils.auth import require_auth
 from app import db
-from flask import jsonify
+
 
 class BlacklistResource(Resource):
 
@@ -34,7 +34,7 @@ class BlacklistResource(Resource):
 
         except Exception as e:
             db.session.rollback()
-            return jsonify({'message': 'Error al agregar email a la lista negra', 'error': str(e)}), 500
+            return {'message': 'Error al agregar email a la lista negra', 'error': str(e)}, 500
 
 class BlacklistEmailResource(Resource):
 
@@ -43,15 +43,15 @@ class BlacklistEmailResource(Resource):
         blacklist_entry = Blacklist.query.filter_by(email=email).first()
 
         if blacklist_entry:
-            return jsonify({
+            return {
                 'is_blocked': True,
                 'email': blacklist_entry.email,
                 'blocked_reason': blacklist_entry.blocked_reason,
                 'app_uuid': blacklist_entry.app_uuid
-            }), 200
+            }, 200
         else:
-            return jsonify({
+            return {
                 'is_blocked': False,
                 'email': email,
                 'message': 'Email no encontrado en la lista negra'
-            }), 200
+            }, 200
