@@ -1,21 +1,38 @@
 version: 0.2
 
+env:
+  variables:
+    AWS_REGION: "us-east-1"
+    ECR_REPO: "695394391846.dkr.ecr.us-east-1.amazonaws.com/devops_app"
+    EB_APP: "devops-app"          # nombre de tu aplicación Elastic Beanstalk
+    EB_ENV: "devops-app-env"          # nombre del entorno Elastic Beanstalk
+    DATABASE_URL: "postgresql://postgres:35476565@devops.cg7y08iiucfy.us-east-1.rds.amazonaws.com:5432/postgres"
+    APP_ENV: "production"
+    DEBUG: "False"
+
 phases:
   pre_build:
     commands:
-      - echo Logging in to Amazon ECR...
-      - aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin 695394391846.dkr.ecr.us-east-1.amazonaws.com
+      - echo "Logging in to Amazon ECR..."
+      - aws ecr get-login-password --region $AWS_REGION | docker login --username AWS --password-stdin $ECR_REPO
   build:
     commands:
-      - echo Build started on `date`
-      - echo Building the Docker image...
+      - echo "Building Docker image..."
       - docker build -t devops_app .
-      - docker tag devops_app:latest 695394391846.dkr.ecr.us-east-1.amazonaws.com/devops_app:latest
+      - docker tag devops_app:latest $ECR_REPO:latest
   post_build:
     commands:
-      - echo Build completed on `date`
-      - echo Pushing the Docker image...
-      - docker push 695394391846.dkr.ecr.us-east-1.amazonaws.com/devops_app:latest
+      - echo "Pushing image to ECR..."
+      - docker push $ECR_REPO:latest
+      - echo "Updating Elastic Beanstalk environment variables..."
+      - aws elasticbeanstalk update-environment \
+        --application-name $EB_APP \
+        --environment-name $EB_ENV \
+        --option-settings \
+        Namespace=aws:elasticbeanstalk:application:environment,OptionName=DATABASE_URL,Value=$DATABASE_URL \
+        Namespace=aws:elasticbeanstalk:application:environment,OptionName=APP_ENV,Value=$APP_ENV \
+        Namespace=aws:elasticbeanstalk:application:environment,OptionName=DEBUG,Value=$DEBUG
+      - echo "Deployment triggered successfully on $EB_ENV."
 artifacts:
   files:
     - '**/*'
