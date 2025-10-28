@@ -25,13 +25,14 @@ phases:
       - echo "Pushing image to ECR..."
       - docker push $ECR_REPO:latest
       - echo "Updating Elastic Beanstalk environment variables..."
-      - aws elasticbeanstalk update-environment \
-        --application-name $EB_APP \
-        --environment-name $EB_ENV \
-        --option-settings \
-        Namespace=aws:elasticbeanstalk:application:environment,OptionName=DATABASE_URL,Value=$DATABASE_URL \
-        Namespace=aws:elasticbeanstalk:application:environment,OptionName=APP_ENV,Value=$APP_ENV \
-        Namespace=aws:elasticbeanstalk:application:environment,OptionName=DEBUG,Value=$DEBUG
+      - |
+        aws elasticbeanstalk update-environment \
+          --application-name $EB_APP \
+          --environment-name $EB_ENV \
+          --option-settings \
+            Namespace=aws:elasticbeanstalk:application:environment,OptionName=DATABASE_URL,Value=$DATABASE_URL \
+            Namespace=aws:elasticbeanstalk:application:environment,OptionName=APP_ENV,Value=$APP_ENV \
+            Namespace=aws:elasticbeanstalk:application:environment,OptionName=DEBUG,Value=$DEBUG
       - echo "Deployment triggered successfully on $EB_ENV."
 artifacts:
   files:
