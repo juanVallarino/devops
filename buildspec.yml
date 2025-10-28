@@ -3,9 +3,9 @@ version: 0.2
 env:
   variables:
     AWS_REGION: "us-east-1"
+    EB_APP: "devops-app"
+    EB_ENV: "Devops-app-env"
     ECR_REPO: "695394391846.dkr.ecr.us-east-1.amazonaws.com/devops_app"
-    EB_APP: "devops-app"          # nombre de tu aplicación Elastic Beanstalk
-    EB_ENV: "devops-app-env"          # nombre del entorno Elastic Beanstalk
     DATABASE_URL: "postgresql://postgres:35476565@devops.cg7y08iiucfy.us-east-1.rds.amazonaws.com:5432/postgres"
     APP_ENV: "production"
     DEBUG: "False"
@@ -14,16 +14,23 @@ phases:
   pre_build:
     commands:
       - echo "Logging in to Amazon ECR..."
-      - aws ecr get-login-password --region $AWS_REGION | docker login --username AWS --password-stdin $ECR_REPO
+      - aws ecr get-login-password --region $AWS_REGION | docker login --username AWS --password-stdin $(echo $ECR_REPO | cut -d'/' -f1)
+
   build:
     commands:
       - echo "Building Docker image..."
       - docker build -t devops_app .
       - docker tag devops_app:latest $ECR_REPO:latest
+
   post_build:
     commands:
-      - echo "Pushing image to ECR..."
+      - echo "Pushing Docker image to ECR..."
       - docker push $ECR_REPO:latest
+
+      - echo "Waiting for Elastic Beanstalk environment to be ready..."
+      - aws elasticbeanstalk wait environment-exists --environment-names $EB_ENV
+      - aws elasticbeanstalk wait environment-updated --environment-names $EB_ENV
+
       - echo "Updating Elastic Beanstalk environment variables..."
       - |
         aws elasticbeanstalk update-environment \
@@ -33,8 +40,7 @@ phases:
             Namespace=aws:elasticbeanstalk:application:environment,OptionName=DATABASE_URL,Value=$DATABASE_URL \
             Namespace=aws:elasticbeanstalk:application:environment,OptionName=APP_ENV,Value=$APP_ENV \
             Namespace=aws:elasticbeanstalk:application:environment,OptionName=DEBUG,Value=$DEBUG
-      - echo "Deployment triggered successfully on $EB_ENV."
+
 artifacts:
   files:
     - '**/*'
-
