@@ -57,7 +57,7 @@ phases:
       - cat imageDetail.json
       - echo ""
       - echo "=== RESUMEN ==="
-      - echo "✅ Imagen: $REPOSITORY_URI:$IMAGE_TAG"
+      - echo "✅ Imagen:$REPOSITORY_URI:$IMAGE_TAG "
       - echo "✅ Artefactos listos para ECS"
 
 artifacts:
