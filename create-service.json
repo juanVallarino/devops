@@ -1,5 +1,5 @@
 {
-  "taskDefinition": "devops-app-v2:1",
+  "taskDefinition": "devops-app-v2:10",
   "cluster": "cluster-devops",
   "loadBalancers": [
     {
