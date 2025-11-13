@@ -8,7 +8,7 @@
   "containerDefinitions": [
     {
       "name": "devops-app-v2",
-      "image": "695394391846.dkr.ecr.us-east-1.amazonaws.com/devops-app-v2:latest\n",
+      "image": "<IMAGE1_NAME>",
       "essential": true,
       "portMappings": [
         {
