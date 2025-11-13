@@ -1,0 +1,59 @@
+{
+  "family": "devops-app-v2",
+  "networkMode": "awsvpc",
+  "requiresCompatibilities": ["FARGATE"],
+  "cpu": "256",
+  "memory": "512",
+  "executionRoleArn": "arn:aws:iam::695394391846:role/ecsTaskExecutionRole",
+  "containerDefinitions": [
+    {
+      "name": "devops-app-v2",
+      "image": "<IMAGE1_NAME>",
+      "essential": true,
+      "portMappings": [
+        {
+          "containerPort": 8080,
+          "protocol": "tcp"
+        }
+      ],
+      "environment": [
+        {
+          "name": "AWS_REGION",
+          "value": "us-east-1"
+        },
+        {
+          "name": "EB_APP",
+          "value": "devops-app"
+        },
+        {
+          "name": "EB_ENV",
+          "value": "DevopsApp-env"
+        },
+        {
+          "name": "ECR_REPO",
+          "value": "695394391846.dkr.ecr.us-east-1.amazonaws.com/devops-app-v2"
+        },
+        {
+          "name": "DATABASE_URL",
+          "value": "postgresql://postgres:35476565@devops.cg7y08iiucfy.us-east-1.rds.amazonaws.com:5432/postgres"
+        },
+        {
+          "name": "APP_ENV",
+          "value": "production"
+        },
+        {
+          "name": "DEBUG",
+          "value": "False"
+        }
+      ],
+      "logConfiguration": {
+        "logDriver": "awslogs",
+        "options": {
+          "awslogs-group": "/ecs/devops-app-v2",
+          "awslogs-region": "us-east-1",
+          "awslogs-stream-prefix": "ecs"
+        }
+      }
+    }
+  ]
+}

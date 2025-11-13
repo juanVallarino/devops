@@ -5,7 +5,7 @@ env:
     AWS_REGION: "us-east-1"
     EB_APP: "devops-app"
     EB_ENV: "Devops-app-env"
-    ECR_REPO: "695394391846.dkr.ecr.us-east-1.amazonaws.com/devops_app"
+    ECR_REPO: "695394391846.dkr.ecr.us-east-1.amazonaws.com/devops-app-v2"
     DATABASE_URL: "postgresql://postgres:35476565@devops.cg7y08iiucfy.us-east-1.rds.amazonaws.com:5432/postgres"
     APP_ENV: "production"
     DEBUG: "False"
@@ -19,8 +19,8 @@ phases:
   build:
     commands:
       - echo "Building Docker image..."
-      - docker build -t devops_app .
-      - docker tag devops_app:latest $ECR_REPO:latest
+      - docker build -t devops-app-v2 .
+      - docker tag devops-app-v2:latest $ECR_REPO:latest
 
   post_build:
     commands:
