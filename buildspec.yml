@@ -3,12 +3,9 @@ version: 0.2
 env:
   variables:
     AWS_REGION: "us-east-1"
-    EB_APP: "devops-app"
-    EB_ENV: "Devops-app-env"
     ECR_REPO: "695394391846.dkr.ecr.us-east-1.amazonaws.com/devops-app-v2"
-    DATABASE_URL: "postgresql://postgres:35476565@devops.cg7y08iiucfy.us-east-1.rds.amazonaws.com:5432/postgres"
-    APP_ENV: "production"
-    DEBUG: "False"
+    CONTAINER_NAME: "devops-app-v2" # Debe coincidir con el nombre del contenedor en tu task definition
+    IMAGE_TAG: "latest"
 
 phases:
   pre_build:
@@ -19,28 +16,17 @@ phases:
   build:
     commands:
       - echo "Building Docker image..."
-      - docker build -t devops-app-v2 .
-      - docker tag devops-app-v2:latest $ECR_REPO:latest
+      - docker build -t $CONTAINER_NAME .
+      - docker tag $CONTAINER_NAME:$IMAGE_TAG $ECR_REPO:$IMAGE_TAG
 
   post_build:
     commands:
       - echo "Pushing Docker image to ECR..."
-      - docker push $ECR_REPO:latest
-
-      - echo "Waiting for Elastic Beanstalk environment to be ready..."
-      - aws elasticbeanstalk wait environment-exists --environment-names $EB_ENV
-      - aws elasticbeanstalk wait environment-updated --environment-names $EB_ENV
-
-      - echo "Updating Elastic Beanstalk environment variables..."
-      - |
-        aws elasticbeanstalk update-environment \
-          --application-name $EB_APP \
-          --environment-name $EB_ENV \
-          --option-settings \
-            Namespace=aws:elasticbeanstalk:application:environment,OptionName=DATABASE_URL,Value=$DATABASE_URL \
-            Namespace=aws:elasticbeanstalk:application:environment,OptionName=APP_ENV,Value=$APP_ENV \
-            Namespace=aws:elasticbeanstalk:application:environment,OptionName=DEBUG,Value=$DEBUG
+      - docker push $ECR_REPO:$IMAGE_TAG
+      - echo "Creating imagedefinitions.json file for ECS..."
+      - printf '[{"name":"%s","imageUri":"%s"}]' "$CONTAINER_NAME" "$ECR_REPO:$IMAGE_TAG" > imagedefinitions.json
+      - cat imagedefinitions.json
 
 artifacts:
   files:
-    - '**/*'
+    - imagedefinitions.json

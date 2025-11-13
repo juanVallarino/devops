@@ -1,0 +1,29 @@
+{
+  "taskDefinition": "devops-app-v2:1",
+  "cluster": "cluster-devops",
+  "loadBalancers": [
+    {
+      "targetGroupArn": "arn:aws:elasticloadbalancing:us-east-1:695394391846:targetgroup/target-group-1/09aa5f2c09e75f94",
+      "containerName": "devops-app-v2",
+      "containerPort": 8080
+    }
+  ],
+  "desiredCount": 1,
+  "launchType": "FARGATE",
+  "schedulingStrategy": "REPLICA",
+  "deploymentController": {
+    "type": "CODE_DEPLOY"
+  },
+  "networkConfiguration": {
+    "awsvpcConfiguration": {
+      "subnets": [
+        "subnet-0c491255f1dd0dab1",
+        "subnet-0902edd2b7a5fed9e"
+      ],
+      "securityGroups": [
+        "sg-02eaa26cfbb58d4ea"
+      ],
+      "assignPublicIp": "ENABLED"
+    }
+  }
+}
