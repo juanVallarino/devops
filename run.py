@@ -9,4 +9,4 @@ if __name__ == '__main__':
         print("Base de datos inicializada correctamente")
         print("Tablas creadas:")
         print("- blacklists")
-    app.run(debug=True, host='0.0.0.0', port=5000)
+    app.run(debug=True, host='0.0.0.0', port=8080)
