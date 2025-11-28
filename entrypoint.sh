@@ -1,3 +1,4 @@
+#!/bin/bash
 set -e
 
 NEWRELIC_INI="/app/newrelic.ini"
