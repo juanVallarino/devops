@@ -8,7 +8,7 @@ services:
     environment:
       - DATABASE_URL=postgresql://postgres:35476565@devops.cg7y08iiucfy.us-east-1.rds.amazonaws.com:5432/postgres
       - APP_ENV=production
-      - NEW_RELIC_LICENSE_KEY=D61E21280023DEA2F85DDFF276D65427FA4C770107EE1EEEB9FA5C8DF8228F58
+      - NEW_RELIC_LICENSE_KEY=86894dbadbc875ec8b6e6b34510d4e76FFFFNRAL
       - NEW_RELIC_APP_NAME=devops-app-v2
       - DEBUG=False
 volumes:
